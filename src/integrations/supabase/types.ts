@@ -14,7 +14,84 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          account_currency: string | null
+          address: string | null
+          city: string | null
+          country: string | null
+          created_at: string
+          date_of_birth: string | null
+          full_name: string
+          gender: string | null
+          id: string
+          id_document_url: string | null
+          next_of_kin_address: string | null
+          next_of_kin_email: string | null
+          next_of_kin_name: string | null
+          next_of_kin_phone: string | null
+          next_of_kin_relationship: string | null
+          occupation: string | null
+          passport_photo_url: string | null
+          phone: string | null
+          pin: string | null
+          ssn_tax_id: string | null
+          updated_at: string
+          user_id: string
+          zip: string | null
+        }
+        Insert: {
+          account_currency?: string | null
+          address?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          full_name: string
+          gender?: string | null
+          id?: string
+          id_document_url?: string | null
+          next_of_kin_address?: string | null
+          next_of_kin_email?: string | null
+          next_of_kin_name?: string | null
+          next_of_kin_phone?: string | null
+          next_of_kin_relationship?: string | null
+          occupation?: string | null
+          passport_photo_url?: string | null
+          phone?: string | null
+          pin?: string | null
+          ssn_tax_id?: string | null
+          updated_at?: string
+          user_id: string
+          zip?: string | null
+        }
+        Update: {
+          account_currency?: string | null
+          address?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          full_name?: string
+          gender?: string | null
+          id?: string
+          id_document_url?: string | null
+          next_of_kin_address?: string | null
+          next_of_kin_email?: string | null
+          next_of_kin_name?: string | null
+          next_of_kin_phone?: string | null
+          next_of_kin_relationship?: string | null
+          occupation?: string | null
+          passport_photo_url?: string | null
+          phone?: string | null
+          pin?: string | null
+          ssn_tax_id?: string | null
+          updated_at?: string
+          user_id?: string
+          zip?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
