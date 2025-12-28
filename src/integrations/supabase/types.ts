@@ -17,7 +17,11 @@ export type Database = {
       profiles: {
         Row: {
           account_currency: string | null
+          account_number: string | null
           address: string | null
+          balance: number | null
+          card_expiry: string | null
+          card_number: string | null
           city: string | null
           country: string | null
           created_at: string
@@ -42,7 +46,11 @@ export type Database = {
         }
         Insert: {
           account_currency?: string | null
+          account_number?: string | null
           address?: string | null
+          balance?: number | null
+          card_expiry?: string | null
+          card_number?: string | null
           city?: string | null
           country?: string | null
           created_at?: string
@@ -67,7 +75,11 @@ export type Database = {
         }
         Update: {
           account_currency?: string | null
+          account_number?: string | null
           address?: string | null
+          balance?: number | null
+          card_expiry?: string | null
+          card_number?: string | null
           city?: string | null
           country?: string | null
           created_at?: string
