@@ -276,39 +276,78 @@ const Dashboard = () => {
       <div className="px-4 mt-6">
         <h3 className="text-lg font-semibold text-foreground mb-3">Monexa Cards</h3>
         
-        {/* ATM Card */}
-        <div className="bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 rounded-2xl p-6 text-primary-foreground shadow-xl aspect-[1.6/1] relative overflow-hidden">
-          {/* Card chip */}
-          <div className="absolute top-6 left-6">
-            <div className="w-12 h-9 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-md" />
+        {/* ATM Card - Premium Design */}
+        <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl p-6 text-white shadow-2xl aspect-[1.586/1] relative overflow-hidden">
+          {/* Background pattern overlay */}
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-white/20 to-transparent rounded-full -translate-y-1/2 translate-x-1/2" />
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-white/10 to-transparent rounded-full translate-y-1/2 -translate-x-1/2" />
           </div>
           
-          {/* Logo */}
-          <div className="absolute top-6 right-6 flex items-center gap-2">
-            <div className="w-8 h-8 bg-red-500/80 rounded flex items-center justify-center">
-              <span className="text-xs font-bold">M</span>
+          {/* Top Row: Chip and Logo */}
+          <div className="flex justify-between items-start relative z-10">
+            {/* EMV Chip */}
+            <div className="w-12 h-10 bg-gradient-to-br from-amber-300 via-yellow-400 to-amber-500 rounded-lg shadow-md relative overflow-hidden">
+              <div className="absolute inset-0.5 bg-gradient-to-br from-amber-200 to-amber-400 rounded-md">
+                <div className="grid grid-cols-3 gap-0.5 p-1 h-full">
+                  {[...Array(6)].map((_, i) => (
+                    <div key={i} className="bg-amber-600/40 rounded-sm" />
+                  ))}
+                </div>
+              </div>
             </div>
-            <span className="font-bold text-lg">MONEXA</span>
+            
+            {/* Monexa Logo */}
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-xl tracking-wide font-display">
+                MONEXA<span className="text-amber-400">.</span>
+              </span>
+            </div>
           </div>
           
-          {/* Card Number */}
-          <div className="absolute top-1/2 left-6 right-6 -translate-y-1/4">
-            <p className="text-xl font-mono tracking-widest">
-              {formatCardNumber(profile?.card_number)}
+          {/* Card Number - Center */}
+          <div className="mt-6 relative z-10">
+            <p className="text-[22px] font-mono tracking-[0.2em] text-white/95 drop-shadow-sm">
+              {profile?.card_number 
+                ? `${profile.card_number.slice(0, 4)} ${profile.card_number.slice(4, 8)} ${profile.card_number.slice(8, 12)} ${profile.card_number.slice(12, 16)}`
+                : "•••• •••• •••• ••••"
+              }
             </p>
           </div>
           
-          {/* Expiry and Name */}
-          <div className="absolute bottom-6 left-6 right-6">
+          {/* Bottom Row: Expiry, CVV and Cardholder Name */}
+          <div className="absolute bottom-5 left-6 right-6 z-10">
             <div className="flex justify-between items-end">
-              <div>
-                <p className="text-xs opacity-70">VALID THRU</p>
-                <p className="text-sm font-mono">{profile?.card_expiry || "XX/XX"}</p>
-                <p className="text-lg font-bold uppercase mt-2">
+              <div className="flex-1">
+                {/* Cardholder Name */}
+                <p className="text-base font-semibold uppercase tracking-wider text-white/95 truncate max-w-[180px]">
                   {profile?.full_name || "CARD HOLDER"}
                 </p>
               </div>
+              
+              {/* Expiry Date */}
+              <div className="text-right">
+                <p className="text-[10px] uppercase text-white/50 tracking-wider">Valid Thru</p>
+                <p className="text-base font-mono text-white/95 tracking-wider">
+                  {profile?.card_expiry || "MM/YY"}
+                </p>
+              </div>
             </div>
+          </div>
+          
+          {/* Contactless icon */}
+          <div className="absolute top-16 right-6 z-10">
+            <svg className="w-8 h-8 text-white/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M6 12c0-4 2-6 6-6" strokeLinecap="round" />
+              <path d="M10 12c0-2 1-3 3-3" strokeLinecap="round" />
+              <path d="M14 12c0-0.5 0.2-1 0.5-1" strokeLinecap="round" />
+            </svg>
+          </div>
+          
+          {/* Card Network Logo (Mastercard-style circles) */}
+          <div className="absolute bottom-5 right-6 flex z-10">
+            <div className="w-8 h-8 bg-red-500 rounded-full opacity-90" />
+            <div className="w-8 h-8 bg-amber-400 rounded-full -ml-3 opacity-90" />
           </div>
         </div>
       </div>
