@@ -31,6 +31,8 @@ interface Profile {
   card_number: string | null;
   card_expiry: string | null;
   balance: number | null;
+  checking_balance: number | null;
+  savings_balance: number | null;
   account_currency: string | null;
 }
 
@@ -66,7 +68,7 @@ const Dashboard = () => {
       try {
         const { data, error } = await supabase
           .from("profiles")
-          .select("full_name, account_number, card_number, card_expiry, balance, account_currency")
+          .select("full_name, account_number, card_number, card_expiry, balance, checking_balance, savings_balance, account_currency")
           .eq("user_id", user.id)
           .maybeSingle();
 
@@ -184,29 +186,36 @@ const Dashboard = () => {
         </div>
       </header>
 
-      {/* Account Card */}
-      <div className="px-4 -mt-2">
-        <div className="bg-gradient-to-br from-monexa-blue via-monexa-teal-dark to-monexa-blue-dark rounded-2xl p-6 text-primary-foreground shadow-xl border border-primary-foreground/10">
-          <p className="text-sm opacity-80 uppercase tracking-wider">Savings</p>
-          <h2 className="text-3xl font-bold mt-1">
-            {formatBalance(profile?.balance, profile?.account_currency)}
-          </h2>
-          
-          <div className="mt-4">
-            <p className="text-xs opacity-70 uppercase tracking-wider">Account Number</p>
-            <p className="text-lg font-mono mt-1">{formatAccountNumber(profile?.account_number)}</p>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-4 mt-4">
+      {/* Account Cards */}
+      <div className="px-4 -mt-2 space-y-3">
+        {/* Checking Account Card */}
+        <div className="bg-gradient-to-br from-monexa-blue via-monexa-teal-dark to-monexa-blue-dark rounded-2xl p-5 text-primary-foreground shadow-xl border border-primary-foreground/10">
+          <div className="flex justify-between items-start">
             <div>
-              <p className="text-xs opacity-70 uppercase tracking-wider">Total Credit</p>
-              <p className="text-xs opacity-70">DEC. 2025</p>
-              <p className="text-lg font-bold mt-1">$0.00</p>
+              <p className="text-xs opacity-80 uppercase tracking-wider">Checking Account</p>
+              <h2 className="text-2xl font-bold mt-1">
+                {formatBalance(profile?.checking_balance, profile?.account_currency)}
+              </h2>
             </div>
+            <div className="text-right">
+              <p className="text-xs opacity-70 uppercase tracking-wider">Account Number</p>
+              <p className="text-sm font-mono mt-1">{formatAccountNumber(profile?.account_number)}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Savings Account Card */}
+        <div className="bg-gradient-to-br from-emerald-600 via-teal-600 to-emerald-700 rounded-2xl p-5 text-primary-foreground shadow-xl border border-primary-foreground/10">
+          <div className="flex justify-between items-start">
             <div>
-              <p className="text-xs opacity-70 uppercase tracking-wider">Total Debit</p>
-              <p className="text-xs opacity-70">DEC. 2025</p>
-              <p className="text-lg font-bold mt-1">$0.00</p>
+              <p className="text-xs opacity-80 uppercase tracking-wider">Savings Account</p>
+              <h2 className="text-2xl font-bold mt-1">
+                {formatBalance(profile?.savings_balance, profile?.account_currency)}
+              </h2>
+            </div>
+            <div className="text-right">
+              <p className="text-xs opacity-70 uppercase tracking-wider">Interest Rate</p>
+              <p className="text-sm font-bold mt-1">2.5% APY</p>
             </div>
           </div>
         </div>
