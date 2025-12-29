@@ -14,6 +14,218 @@ export type Database = {
   }
   public: {
     Tables: {
+      beneficiaries: {
+        Row: {
+          account_number: string
+          bank_name: string
+          beneficiary_type: string
+          created_at: string
+          email: string | null
+          iban: string | null
+          id: string
+          name: string
+          routing_number: string | null
+          swift_code: string | null
+          user_id: string
+        }
+        Insert: {
+          account_number: string
+          bank_name: string
+          beneficiary_type?: string
+          created_at?: string
+          email?: string | null
+          iban?: string | null
+          id?: string
+          name: string
+          routing_number?: string | null
+          swift_code?: string | null
+          user_id: string
+        }
+        Update: {
+          account_number?: string
+          bank_name?: string
+          beneficiary_type?: string
+          created_at?: string
+          email?: string | null
+          iban?: string | null
+          id?: string
+          name?: string
+          routing_number?: string | null
+          swift_code?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      crypto_wallets: {
+        Row: {
+          balance: number
+          created_at: string
+          currency: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          currency: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      investments: {
+        Row: {
+          amount: number
+          created_at: string
+          current_value: number
+          duration_months: number
+          expected_return: number
+          id: string
+          maturity_date: string
+          plan_name: string
+          roi_percentage: number
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          current_value: number
+          duration_months: number
+          expected_return: number
+          id?: string
+          maturity_date: string
+          plan_name: string
+          roi_percentage: number
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          current_value?: number
+          duration_months?: number
+          expected_return?: number
+          id?: string
+          maturity_date?: string
+          plan_name?: string
+          roi_percentage?: number
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      loans: {
+        Row: {
+          admin_action_at: string | null
+          admin_action_by: string | null
+          admin_notes: string | null
+          amount: number
+          amount_paid: number
+          created_at: string
+          id: string
+          interest_rate: number
+          monthly_payment: number
+          next_payment_date: string | null
+          purpose: string | null
+          status: string
+          term_months: number
+          total_repayment: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_action_at?: string | null
+          admin_action_by?: string | null
+          admin_notes?: string | null
+          amount: number
+          amount_paid?: number
+          created_at?: string
+          id?: string
+          interest_rate?: number
+          monthly_payment: number
+          next_payment_date?: string | null
+          purpose?: string | null
+          status?: string
+          term_months: number
+          total_repayment: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_action_at?: string | null
+          admin_action_by?: string | null
+          admin_notes?: string | null
+          amount?: number
+          amount_paid?: number
+          created_at?: string
+          id?: string
+          interest_rate?: number
+          monthly_payment?: number
+          next_payment_date?: string | null
+          purpose?: string | null
+          status?: string
+          term_months?: number
+          total_repayment?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          read: boolean
+          related_transaction_id: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          read?: boolean
+          related_transaction_id?: string | null
+          title: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          read?: boolean
+          related_transaction_id?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_related_transaction_id_fkey"
+            columns: ["related_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           account_currency: string | null
@@ -22,6 +234,7 @@ export type Database = {
           balance: number | null
           card_expiry: string | null
           card_number: string | null
+          checking_balance: number | null
           city: string | null
           country: string | null
           created_at: string
@@ -39,6 +252,7 @@ export type Database = {
           passport_photo_url: string | null
           phone: string | null
           pin: string | null
+          savings_balance: number | null
           ssn_tax_id: string | null
           updated_at: string
           user_id: string
@@ -51,6 +265,7 @@ export type Database = {
           balance?: number | null
           card_expiry?: string | null
           card_number?: string | null
+          checking_balance?: number | null
           city?: string | null
           country?: string | null
           created_at?: string
@@ -68,6 +283,7 @@ export type Database = {
           passport_photo_url?: string | null
           phone?: string | null
           pin?: string | null
+          savings_balance?: number | null
           ssn_tax_id?: string | null
           updated_at?: string
           user_id: string
@@ -80,6 +296,7 @@ export type Database = {
           balance?: number | null
           card_expiry?: string | null
           card_number?: string | null
+          checking_balance?: number | null
           city?: string | null
           country?: string | null
           created_at?: string
@@ -97,6 +314,7 @@ export type Database = {
           passport_photo_url?: string | null
           phone?: string | null
           pin?: string | null
+          savings_balance?: number | null
           ssn_tax_id?: string | null
           updated_at?: string
           user_id?: string
@@ -106,36 +324,104 @@ export type Database = {
       }
       transactions: {
         Row: {
+          account_number: string | null
+          account_type: string | null
+          admin_action_at: string | null
+          admin_action_by: string | null
+          admin_notes: string | null
           amount: number
+          balance_after: number | null
+          balance_before: number | null
+          bank_name: string | null
+          beneficiary_id: string | null
           category: string
           created_at: string
           description: string
+          iban: string | null
           id: string
+          recipient_user_id: string | null
           reference: string | null
+          routing_number: string | null
           status: string
+          swift_code: string | null
           type: string
           user_id: string
         }
         Insert: {
+          account_number?: string | null
+          account_type?: string | null
+          admin_action_at?: string | null
+          admin_action_by?: string | null
+          admin_notes?: string | null
           amount: number
+          balance_after?: number | null
+          balance_before?: number | null
+          bank_name?: string | null
+          beneficiary_id?: string | null
           category: string
           created_at?: string
           description: string
+          iban?: string | null
           id?: string
+          recipient_user_id?: string | null
           reference?: string | null
+          routing_number?: string | null
           status?: string
+          swift_code?: string | null
           type: string
           user_id: string
         }
         Update: {
+          account_number?: string | null
+          account_type?: string | null
+          admin_action_at?: string | null
+          admin_action_by?: string | null
+          admin_notes?: string | null
           amount?: number
+          balance_after?: number | null
+          balance_before?: number | null
+          bank_name?: string | null
+          beneficiary_id?: string | null
           category?: string
           created_at?: string
           description?: string
+          iban?: string | null
           id?: string
+          recipient_user_id?: string | null
           reference?: string | null
+          routing_number?: string | null
           status?: string
+          swift_code?: string | null
           type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_beneficiary_id_fkey"
+            columns: ["beneficiary_id"]
+            isOneToOne: false
+            referencedRelation: "beneficiaries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
         }
         Relationships: []
@@ -145,10 +431,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -275,6 +567,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+    },
   },
 } as const
