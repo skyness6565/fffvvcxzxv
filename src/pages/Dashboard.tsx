@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { useToast } from "@/hooks/use-toast";
+import TransactionHistory from "@/components/TransactionHistory";
 import {
   ArrowUpRight,
   ArrowDownLeft,
@@ -267,6 +268,9 @@ const Dashboard = () => {
           No Beneficiary. <span onClick={() => navigate("/add-beneficiary")} className="text-primary cursor-pointer">Add New</span>
         </p>
       </div>
+
+      {/* Transaction History */}
+      <TransactionHistory />
 
       {/* Monexa Cards */}
       <div className="px-4 mt-6">
