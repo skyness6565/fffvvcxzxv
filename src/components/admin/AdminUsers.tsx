@@ -1,13 +1,23 @@
 import { useState } from "react";
-import { Search, Eye, Lock, Unlock, User, ChevronDown, ChevronUp } from "lucide-react";
+import { Search, Eye, Lock, Unlock, User, ChevronDown, ChevronUp, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface UserProfile {
   id: string;
@@ -38,9 +48,10 @@ interface AdminUsersProps {
   users: UserProfile[];
   onFreezeToggle: (userId: string, freeze: boolean) => void;
   onViewTransactions: (userId: string) => Promise<UserTransaction[]>;
+  onAdjustBalance: (userId: string, accountType: "checking" | "savings", amount: number, operation: "add" | "subtract", reason: string) => Promise<boolean>;
 }
 
-const AdminUsers = ({ users, onFreezeToggle, onViewTransactions }: AdminUsersProps) => {
+const AdminUsers = ({ users, onFreezeToggle, onViewTransactions, onAdjustBalance }: AdminUsersProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [transactionDialog, setTransactionDialog] = useState<{ open: boolean; userId: string | null; userName: string }>({ 
@@ -50,6 +61,28 @@ const AdminUsers = ({ users, onFreezeToggle, onViewTransactions }: AdminUsersPro
   });
   const [transactions, setTransactions] = useState<UserTransaction[]>([]);
   const [loadingTransactions, setLoadingTransactions] = useState(false);
+  
+  // Balance adjustment state
+  const [balanceDialog, setBalanceDialog] = useState<{ 
+    open: boolean; 
+    userId: string | null; 
+    userName: string;
+    currentChecking: number;
+    currentSavings: number;
+  }>({ 
+    open: false, 
+    userId: null, 
+    userName: "",
+    currentChecking: 0,
+    currentSavings: 0,
+  });
+  const [adjustmentForm, setAdjustmentForm] = useState({
+    accountType: "checking" as "checking" | "savings",
+    operation: "add" as "add" | "subtract",
+    amount: "",
+    reason: "",
+  });
+  const [adjustingBalance, setAdjustingBalance] = useState(false);
 
   const filteredUsers = users.filter(
     (user) =>
@@ -66,6 +99,42 @@ const AdminUsers = ({ users, onFreezeToggle, onViewTransactions }: AdminUsersPro
       setTransactions(txs);
     } finally {
       setLoadingTransactions(false);
+    }
+  };
+
+  const handleOpenBalanceDialog = (user: UserProfile) => {
+    setBalanceDialog({
+      open: true,
+      userId: user.user_id,
+      userName: user.full_name,
+      currentChecking: user.checking_balance,
+      currentSavings: user.savings_balance,
+    });
+    setAdjustmentForm({
+      accountType: "checking",
+      operation: "add",
+      amount: "",
+      reason: "",
+    });
+  };
+
+  const handleBalanceAdjustment = async () => {
+    if (!balanceDialog.userId || !adjustmentForm.amount || !adjustmentForm.reason.trim()) return;
+    
+    setAdjustingBalance(true);
+    try {
+      const success = await onAdjustBalance(
+        balanceDialog.userId,
+        adjustmentForm.accountType,
+        parseFloat(adjustmentForm.amount),
+        adjustmentForm.operation,
+        adjustmentForm.reason
+      );
+      if (success) {
+        setBalanceDialog({ open: false, userId: null, userName: "", currentChecking: 0, currentSavings: 0 });
+      }
+    } finally {
+      setAdjustingBalance(false);
     }
   };
 
@@ -162,14 +231,22 @@ const AdminUsers = ({ users, onFreezeToggle, onViewTransactions }: AdminUsersPro
                   </div>
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => handleViewTransactions(user)}
                     className="flex-1"
                   >
-                    <Eye className="w-4 h-4 mr-1" /> View Transactions
+                    <Eye className="w-4 h-4 mr-1" /> Transactions
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => handleOpenBalanceDialog(user)}
+                    className="flex-1"
+                  >
+                    <DollarSign className="w-4 h-4 mr-1" /> Adjust
                   </Button>
                   <Button
                     size="sm"
@@ -231,6 +308,93 @@ const AdminUsers = ({ users, onFreezeToggle, onViewTransactions }: AdminUsersPro
               </div>
             )}
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Balance Adjustment Dialog */}
+      <Dialog open={balanceDialog.open} onOpenChange={(open) => setBalanceDialog({ ...balanceDialog, open })}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Adjust Balance - {balanceDialog.userName}</DialogTitle>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <div className="grid grid-cols-2 gap-3 p-3 bg-secondary/50 rounded-lg">
+              <div>
+                <p className="text-xs text-muted-foreground">Current Checking</p>
+                <p className="font-bold">${balanceDialog.currentChecking.toLocaleString("en-US", { minimumFractionDigits: 2 })}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Current Savings</p>
+                <p className="font-bold">${balanceDialog.currentSavings.toLocaleString("en-US", { minimumFractionDigits: 2 })}</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Account Type</Label>
+                <Select
+                  value={adjustmentForm.accountType}
+                  onValueChange={(value: "checking" | "savings") => setAdjustmentForm({ ...adjustmentForm, accountType: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="checking">Checking</SelectItem>
+                    <SelectItem value="savings">Savings</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Operation</Label>
+                <Select
+                  value={adjustmentForm.operation}
+                  onValueChange={(value: "add" | "subtract") => setAdjustmentForm({ ...adjustmentForm, operation: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="add">Add Funds</SelectItem>
+                    <SelectItem value="subtract">Subtract Funds</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div>
+              <Label>Amount ($)</Label>
+              <Input
+                type="number"
+                min="0.01"
+                step="0.01"
+                value={adjustmentForm.amount}
+                onChange={(e) => setAdjustmentForm({ ...adjustmentForm, amount: e.target.value })}
+                placeholder="Enter amount"
+              />
+            </div>
+
+            <div>
+              <Label>Reason (Required)</Label>
+              <Textarea
+                value={adjustmentForm.reason}
+                onChange={(e) => setAdjustmentForm({ ...adjustmentForm, reason: e.target.value })}
+                placeholder="Explain the reason for this adjustment..."
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBalanceDialog({ ...balanceDialog, open: false })}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleBalanceAdjustment}
+              disabled={!adjustmentForm.amount || !adjustmentForm.reason.trim() || adjustingBalance}
+            >
+              {adjustingBalance ? "Processing..." : "Confirm Adjustment"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>
