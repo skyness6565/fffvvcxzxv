@@ -7,10 +7,15 @@ const corsHeaders = {
 };
 
 interface AdminActionRequest {
-  action: "approve" | "reject";
+  action: "approve" | "reject" | "adjust_balance";
   transactionId?: string;
   loanId?: string;
   notes?: string;
+  // Balance adjustment fields
+  targetUserId?: string;
+  accountType?: "checking" | "savings";
+  amount?: number;
+  operation?: "add" | "subtract";
 }
 
 serve(async (req) => {
@@ -252,9 +257,92 @@ serve(async (req) => {
         JSON.stringify({ success: true, message: `Loan ${body.action}d successfully` }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
+    } else if (body.action === "adjust_balance" && body.targetUserId) {
+      // Handle balance adjustment
+      if (!body.amount || !body.accountType || !body.operation || !body.notes) {
+        throw new Error("Missing required fields for balance adjustment");
+      }
+
+      const balanceField = body.accountType === "savings" ? "savings_balance" : "checking_balance";
+
+      // Get current balance
+      const { data: profile, error: profileError } = await supabaseAdmin
+        .from("profiles")
+        .select("checking_balance, savings_balance, full_name")
+        .eq("user_id", body.targetUserId)
+        .single();
+
+      if (profileError || !profile) {
+        throw new Error("User profile not found");
+      }
+
+      const currentBalance = body.accountType === "savings" 
+        ? Number(profile.savings_balance) || 0
+        : Number(profile.checking_balance) || 0;
+
+      let newBalance: number;
+      let transactionType: string;
+      let description: string;
+
+      if (body.operation === "add") {
+        newBalance = currentBalance + body.amount;
+        transactionType = "credit";
+        description = `Admin adjustment (credit): ${body.notes}`;
+      } else {
+        if (currentBalance < body.amount) {
+          throw new Error("Insufficient balance for subtraction");
+        }
+        newBalance = currentBalance - body.amount;
+        transactionType = "debit";
+        description = `Admin adjustment (debit): ${body.notes}`;
+      }
+
+      // Update balance
+      await supabaseAdmin
+        .from("profiles")
+        .update({ [balanceField]: newBalance })
+        .eq("user_id", body.targetUserId);
+
+      // Create transaction record for audit
+      await supabaseAdmin.from("transactions").insert({
+        user_id: body.targetUserId,
+        type: transactionType,
+        category: "admin_adjustment",
+        description,
+        amount: body.amount,
+        status: "completed",
+        reference: `ADJ-${Date.now().toString(36).toUpperCase()}`,
+        balance_before: currentBalance,
+        balance_after: newBalance,
+        account_type: body.accountType,
+        admin_action_by: user.id,
+        admin_action_at: new Date().toISOString(),
+        admin_notes: body.notes,
+      });
+
+      // Notify user
+      await supabaseAdmin.from("notifications").insert({
+        user_id: body.targetUserId,
+        title: "Balance Adjusted",
+        message: `Your ${body.accountType} account has been ${body.operation === "add" ? "credited with" : "debited by"} $${body.amount.toFixed(2)}. Reason: ${body.notes}`,
+        type: "info",
+      });
+
+      console.log("Balance adjusted:", {
+        userId: body.targetUserId,
+        accountType: body.accountType,
+        operation: body.operation,
+        amount: body.amount,
+        adminId: user.id,
+      });
+
+      return new Response(
+        JSON.stringify({ success: true, message: "Balance adjusted successfully" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
-    throw new Error("No transaction or loan ID provided");
+    throw new Error("Invalid action or missing required fields");
 
   } catch (error: unknown) {
     console.error("Admin action error:", error);

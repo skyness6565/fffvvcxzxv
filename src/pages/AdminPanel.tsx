@@ -253,6 +253,42 @@ const AdminPanel = () => {
     return data || [];
   };
 
+  const handleAdjustBalance = async (
+    userId: string,
+    accountType: "checking" | "savings",
+    amount: number,
+    operation: "add" | "subtract",
+    reason: string
+  ): Promise<boolean> => {
+    try {
+      const response = await supabase.functions.invoke("admin-action", {
+        body: {
+          action: "adjust_balance",
+          targetUserId: userId,
+          accountType,
+          amount,
+          operation,
+          notes: reason,
+        },
+      });
+
+      if (response.error || !response.data?.success) {
+        throw new Error(response.data?.error || "Balance adjustment failed");
+      }
+
+      toast({ title: "Balance adjusted successfully" });
+      await fetchAllData();
+      return true;
+    } catch (error: unknown) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Balance adjustment failed",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
   if (loading || !isAdmin) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -345,6 +381,7 @@ const AdminPanel = () => {
               users={users}
               onFreezeToggle={handleFreezeToggle}
               onViewTransactions={handleViewTransactions}
+              onAdjustBalance={handleAdjustBalance}
             />
           </TabsContent>
 
