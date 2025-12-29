@@ -15,7 +15,7 @@ interface PendingTransaction {
   bank_name: string | null;
   account_number: string | null;
   created_at: string;
-  profiles?: { full_name: string; email?: string };
+  userName?: string;
 }
 
 interface PendingLoan {
@@ -25,7 +25,12 @@ interface PendingLoan {
   term_months: number;
   purpose: string | null;
   created_at: string;
-  profiles?: { full_name: string };
+  userName?: string;
+}
+
+interface Profile {
+  user_id: string;
+  full_name: string;
 }
 
 const AdminPanel = () => {
@@ -66,21 +71,43 @@ const AdminPanel = () => {
   };
 
   const fetchPendingItems = async () => {
-    const [txRes, loanRes] = await Promise.all([
+    // Fetch transactions and loans without join
+    const [txRes, loanRes, profilesRes] = await Promise.all([
       supabase
         .from("transactions")
-        .select("*, profiles(full_name)")
+        .select("*")
         .eq("status", "pending")
         .order("created_at", { ascending: false }),
       supabase
         .from("loans")
-        .select("*, profiles(full_name)")
+        .select("*")
         .eq("status", "pending")
         .order("created_at", { ascending: false }),
+      supabase
+        .from("profiles")
+        .select("user_id, full_name"),
     ]);
 
-    if (txRes.data) setPendingTransactions(txRes.data as PendingTransaction[]);
-    if (loanRes.data) setPendingLoans(loanRes.data as PendingLoan[]);
+    const profilesMap = new Map<string, string>();
+    if (profilesRes.data) {
+      (profilesRes.data as Profile[]).forEach(p => profilesMap.set(p.user_id, p.full_name));
+    }
+
+    if (txRes.data) {
+      const transactions = txRes.data.map(tx => ({
+        ...tx,
+        userName: profilesMap.get(tx.user_id) || "Unknown User",
+      })) as PendingTransaction[];
+      setPendingTransactions(transactions);
+    }
+
+    if (loanRes.data) {
+      const loans = loanRes.data.map(loan => ({
+        ...loan,
+        userName: profilesMap.get(loan.user_id) || "Unknown User",
+      })) as PendingLoan[];
+      setPendingLoans(loans);
+    }
   };
 
   const handleTransactionAction = async (id: string, action: "approve" | "reject") => {
@@ -154,7 +181,7 @@ const AdminPanel = () => {
                 <div className="flex justify-between items-start mb-2">
                   <div>
                     <p className="font-bold text-lg">${tx.amount.toFixed(2)}</p>
-                    <p className="text-sm text-muted-foreground">{tx.profiles?.full_name}</p>
+                    <p className="text-sm text-muted-foreground">{tx.userName}</p>
                   </div>
                   <span className="px-2 py-1 bg-yellow-500/20 text-yellow-600 rounded text-xs">
                     {tx.category.replace("_", " ")}
@@ -198,7 +225,7 @@ const AdminPanel = () => {
                 <div className="flex justify-between items-start mb-2">
                   <div>
                     <p className="font-bold text-lg">${loan.amount.toFixed(2)}</p>
-                    <p className="text-sm text-muted-foreground">{loan.profiles?.full_name}</p>
+                    <p className="text-sm text-muted-foreground">{loan.userName}</p>
                   </div>
                   <span className="text-xs text-muted-foreground">{loan.term_months} months</span>
                 </div>
