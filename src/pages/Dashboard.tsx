@@ -115,18 +115,18 @@ const Dashboard = () => {
   };
 
   const quickActions = [
-    { icon: ArrowUpRight, label: "Wire\nTransfer", color: "bg-primary" },
-    { icon: ArrowDownLeft, label: "Local\nTransfer", color: "bg-primary" },
-    { icon: RefreshCw, label: "Internal\nTransfer", color: "bg-primary" },
-    { icon: Bitcoin, label: "Buy\nCrypto", color: "bg-primary" },
-    { icon: Receipt, label: "Pay\nBills", color: "bg-primary" },
-    { icon: UserPlus, label: "Add\nBeneficiary", color: "bg-primary" },
-    { icon: FileText, label: "Savings\nStatement", color: "bg-primary" },
-    { icon: FileText, label: "Checking\nStatement", color: "bg-primary" },
-    { icon: Mail, label: "Monexa\nAlerts", color: "bg-primary" },
-    { icon: DollarSign, label: "Monexa\nLoans", color: "bg-primary" },
-    { icon: BarChart3, label: "Monexa\nInvestments", color: "bg-primary" },
-    { icon: MessageCircle, label: "Monexa\nSupport", color: "bg-primary" },
+    { icon: ArrowUpRight, label: "Wire\nTransfer", color: "bg-primary", path: "/wire-transfer" },
+    { icon: ArrowDownLeft, label: "Local\nTransfer", color: "bg-primary", path: "/local-transfer" },
+    { icon: RefreshCw, label: "Internal\nTransfer", color: "bg-primary", path: "/internal-transfer" },
+    { icon: Bitcoin, label: "Buy\nCrypto", color: "bg-primary", path: "/buy-crypto" },
+    { icon: Receipt, label: "Pay\nBills", color: "bg-primary", path: "/pay-bills" },
+    { icon: UserPlus, label: "Add\nBeneficiary", color: "bg-primary", path: "/add-beneficiary" },
+    { icon: FileText, label: "Savings\nStatement", color: "bg-primary", path: "/statement?type=savings" },
+    { icon: FileText, label: "Checking\nStatement", color: "bg-primary", path: "/statement?type=checking" },
+    { icon: Mail, label: "Monexa\nAlerts", color: "bg-primary", path: "/alerts" },
+    { icon: DollarSign, label: "Monexa\nLoans", color: "bg-primary", path: "/loans" },
+    { icon: BarChart3, label: "Monexa\nInvestments", color: "bg-primary", path: "/investments" },
+    { icon: MessageCircle, label: "Monexa\nSupport", color: "bg-primary", path: "/support" },
   ];
 
   const tips = [
@@ -218,6 +218,7 @@ const Dashboard = () => {
             {quickActions.slice(0, 6).map((action, index) => (
               <button
                 key={index}
+                onClick={() => navigate(action.path)}
                 className="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-secondary transition-colors"
               >
                 <div className={`${action.color} p-3 rounded-xl`}>
@@ -236,6 +237,7 @@ const Dashboard = () => {
             {quickActions.slice(6).map((action, index) => (
               <button
                 key={index}
+                onClick={() => navigate(action.path)}
                 className="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-secondary transition-colors"
               >
                 <div className={`${action.color} p-3 rounded-xl`}>
@@ -254,12 +256,15 @@ const Dashboard = () => {
       <div className="px-4 mt-6">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-lg font-semibold text-foreground">Beneficiaries</h3>
-          <button className="flex items-center gap-1 text-primary text-sm font-medium border border-primary rounded-full px-3 py-1">
+          <button 
+            onClick={() => navigate("/add-beneficiary")}
+            className="flex items-center gap-1 text-primary text-sm font-medium border border-primary rounded-full px-3 py-1"
+          >
             Add New <UserPlus className="w-4 h-4" />
           </button>
         </div>
         <p className="text-muted-foreground">
-          No Beneficiary. <span className="text-primary cursor-pointer">Add New</span>
+          No Beneficiary. <span onClick={() => navigate("/add-beneficiary")} className="text-primary cursor-pointer">Add New</span>
         </p>
       </div>
 
@@ -329,11 +334,17 @@ const Dashboard = () => {
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border px-4 py-2 z-50">
         <div className="flex items-center justify-around">
-          <button className="flex flex-col items-center gap-1 text-muted-foreground hover:text-primary transition-colors">
+          <button 
+            onClick={() => navigate("/settings")}
+            className="flex flex-col items-center gap-1 text-muted-foreground hover:text-primary transition-colors"
+          >
             <Settings className="w-5 h-5" />
             <span className="text-xs">Settings</span>
           </button>
-          <button className="flex flex-col items-center gap-1 text-muted-foreground hover:text-primary transition-colors">
+          <button 
+            onClick={() => navigate("/notifications")}
+            className="flex flex-col items-center gap-1 text-muted-foreground hover:text-primary transition-colors"
+          >
             <Mail className="w-5 h-5" />
             <span className="text-xs">Notifications</span>
           </button>
@@ -341,7 +352,10 @@ const Dashboard = () => {
             <Home className="w-5 h-5" />
             <span className="text-xs font-medium">Home</span>
           </button>
-          <button className="flex flex-col items-center gap-1 text-muted-foreground hover:text-primary transition-colors">
+          <button 
+            onClick={() => navigate("/support")}
+            className="flex flex-col items-center gap-1 text-muted-foreground hover:text-primary transition-colors"
+          >
             <MessageCircle className="w-5 h-5" />
             <span className="text-xs">Support</span>
           </button>
