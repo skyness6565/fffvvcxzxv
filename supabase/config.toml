@@ -2,3 +2,6 @@ project_id = "qomtiaadxcqnrvrvimmf"
 
 [functions.admin-action]
 verify_jwt = false
+
+[functions.process-transfer]
+verify_jwt = false
