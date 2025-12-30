@@ -6,10 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import TransferPinDialog from "@/components/TransferPinDialog";
+import TransferReceipt, { TransferReceiptData } from "@/components/TransferReceipt";
 
 interface Profile {
   checking_balance: number | null;
   savings_balance: number | null;
+  pin: string | null;
 }
 
 interface Beneficiary {
@@ -27,6 +30,12 @@ const LocalTransfer = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [beneficiaries, setBeneficiaries] = useState<Beneficiary[]>([]);
   const [useBeneficiary, setUseBeneficiary] = useState(false);
+  const [userId, setUserId] = useState<string>("");
+  const [showPinDialog, setShowPinDialog] = useState(false);
+  const [pinMode, setPinMode] = useState<"create" | "verify">("verify");
+  const [pinVerified, setPinVerified] = useState(false);
+  const [showReceipt, setShowReceipt] = useState(false);
+  const [receiptData, setReceiptData] = useState<TransferReceiptData | null>(null);
   const [formData, setFormData] = useState({
     beneficiaryId: "",
     recipientName: "",
@@ -42,11 +51,12 @@ const LocalTransfer = () => {
     const fetchData = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+      setUserId(user.id);
 
       const [profileRes, beneficiariesRes] = await Promise.all([
         supabase
           .from("profiles")
-          .select("checking_balance, savings_balance")
+          .select("checking_balance, savings_balance, pin")
           .eq("user_id", user.id)
           .maybeSingle(),
         supabase
@@ -90,6 +100,18 @@ const LocalTransfer = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Check if user needs to create or verify PIN
+    if (!pinVerified) {
+      if (!profile?.pin) {
+        setPinMode("create");
+      } else {
+        setPinMode("verify");
+      }
+      setShowPinDialog(true);
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -128,11 +150,19 @@ const LocalTransfer = () => {
         throw new Error(response.data.error);
       }
 
-      toast({
-        title: "Transfer Submitted",
-        description: `Your local transfer of $${amount.toFixed(2)} is pending approval. Ref: ${response.data.reference}`,
+      // Show receipt
+      setReceiptData({
+        type: "local",
+        status: "pending",
+        reference: response.data.reference,
+        amount,
+        recipientName: formData.recipientName,
+        bankName: formData.bankName,
+        accountNumber: formData.accountNumber,
+        description: formData.description,
+        date: new Date(),
       });
-      navigate("/dashboard");
+      setShowReceipt(true);
 
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Transfer failed";
@@ -144,6 +174,15 @@ const LocalTransfer = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePinSuccess = () => {
+    setShowPinDialog(false);
+    setPinVerified(true);
+    if (!profile?.pin) {
+      setProfile(prev => prev ? { ...prev, pin: "set" } : null);
+    }
+    toast({ title: "PIN Verified", description: "You can now proceed with your transfer" });
   };
 
   return (
@@ -300,6 +339,20 @@ const LocalTransfer = () => {
           </Button>
         </form>
       </div>
+
+      <TransferPinDialog
+        open={showPinDialog}
+        onClose={() => setShowPinDialog(false)}
+        onSuccess={handlePinSuccess}
+        mode={pinMode}
+        userId={userId}
+      />
+
+      <TransferReceipt
+        open={showReceipt}
+        onClose={() => setShowReceipt(false)}
+        data={receiptData}
+      />
     </div>
   );
 };
