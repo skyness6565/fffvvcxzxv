@@ -86,6 +86,35 @@ const Dashboard = () => {
     };
 
     fetchProfile();
+
+    // Subscribe to real-time profile updates for balance changes
+    if (!user) return;
+    
+    const channel = supabase
+      .channel('profile-balance-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          console.log('Real-time balance update:', payload);
+          const newData = payload.new as Profile;
+          setProfile((prev) => prev ? { ...prev, ...newData } : newData);
+          toast({
+            title: "Balance Updated",
+            description: "Your account balance has been updated.",
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user, toast]);
 
   const handleLogout = async () => {
