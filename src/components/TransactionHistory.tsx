@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowUpRight, ArrowDownLeft } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface Transaction {
   id: string;
@@ -15,11 +16,14 @@ interface Transaction {
 const TransactionHistory = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchTransactions = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+      setUserId(user.id);
 
       const { data, error } = await supabase
         .from("transactions")
@@ -35,19 +39,46 @@ const TransactionHistory = () => {
     };
 
     fetchTransactions();
+  }, []);
 
-    // Subscribe to realtime updates
+  // Subscribe to realtime updates filtered by user
+  useEffect(() => {
+    if (!userId) return;
+
     const channel = supabase
-      .channel("transactions-changes")
+      .channel("transactions-realtime")
       .on(
         "postgres_changes",
         {
-          event: "*",
+          event: "INSERT",
           schema: "public",
           table: "transactions",
+          filter: `user_id=eq.${userId}`,
         },
-        () => {
-          fetchTransactions();
+        (payload) => {
+          console.log("New transaction:", payload);
+          const newTx = payload.new as Transaction;
+          setTransactions((prev) => [newTx, ...prev.slice(0, 9)]);
+          toast({
+            title: newTx.type === "credit" ? "Money Received!" : "Transfer Sent",
+            description: `${newTx.type === "credit" ? "+" : "-"}$${newTx.amount.toFixed(2)} - ${newTx.description}`,
+          });
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "transactions",
+          filter: `user_id=eq.${userId}`,
+        },
+        (payload) => {
+          console.log("Transaction updated:", payload);
+          const updatedTx = payload.new as Transaction;
+          setTransactions((prev) =>
+            prev.map((tx) => (tx.id === updatedTx.id ? updatedTx : tx))
+          );
         }
       )
       .subscribe();
@@ -55,7 +86,7 @@ const TransactionHistory = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [userId, toast]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
